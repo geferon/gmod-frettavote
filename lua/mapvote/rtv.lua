@@ -25,26 +25,41 @@ function RTV.RemoveVote()
 end
 
 function RTV.Start()
-			if GAMEMODE_NAME == "terrortown" then
-				net.Start("RTV_Delay")
-        		net.Broadcast()
- 
-				hook.Add("TTTEndRound", "MapvoteDelayed", function()
-					MapVote.Start(nil, nil, nil, nil)
-				end)
-			elseif GAMEMODE_NAME == "deathrun" then
-				net.Start("RTV_Delay")
-        		net.Broadcast()
+	if GAMEMODE_NAME == "terrortown" then
+		net.Start("RTV_Delay")
+		net.Broadcast()
 
-				hook.Add("RoundEnd", "MapvoteDelayed", function()
-					MapVote.Start(nil, nil, nil, nil)
-				end)
-			else
-				PrintMessage( HUD_PRINTTALK, "The vote has been rocked, map vote imminent")
-				timer.Simple(4, function()
-					MapVote.Start(nil, nil, nil, nil)
-				end)
-			end
+		hook.Add("TTTEndRound", "MapvoteDelayed", function()
+			MapVote.Start()
+		end)
+	elseif GAMEMODE_NAME == "deathrun" then
+		net.Start("RTV_Delay")
+		net.Broadcast()
+
+		hook.Add("RoundEnd", "MapvoteDelayed", function()
+			MapVote.Start()
+		end)
+	elseif GAMEMODE_NAME == "murder" then
+		net.Start("RTV_Delay")
+		net.Broadcast()
+
+		hook.Add("OnEndRound", "MapvoteDelayed", function()
+			MapVote.Start()
+		end)
+	elseif GAMEMODE_NAME == "morbusgame" or string.find(GAMEMODE_NAME, "morbusgame") then
+		net.Start("RTV_Delay")
+		net.Broadcast()
+
+		hook.Add("Morbus_RoundEnd", "MapvoteDelayed", function() // tho by default there is no hook... maybe i should find a way to fix this
+			GAMEMODE.STOP = true
+			MapVote.Start()
+		end)
+	else
+		PrintMessage( HUD_PRINTTALK, "The vote has been rocked, map vote imminent")
+		timer.Simple(4, function()
+			MapVote.Start()
+		end)
+	end
 end
 
 
@@ -98,8 +113,8 @@ function RTV.CanVote( ply )
 		return false, "There has already been a vote, the map is going to change!"
 	end
 	if plyCount < RTV.PlayerCount then
-        return false, "You need more players before you can rock the vote!"
-    end
+		return false, "You need more players before you can rock the vote!"
+	end
 
 	return true
 

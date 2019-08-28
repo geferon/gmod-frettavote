@@ -10,7 +10,10 @@ MapVoteConfigDefault = {
     MapsBeforeRevote = 3,
     RTVPlayerCount = 3,
     MapPrefixes = {"ttt_"},
-    AutoGamemode = false
+    -- AutoGamemode = false,
+    VoteGamemode = true,
+    GamemodesWhitelist = true,
+    GamemodesToVote = {"terrortown", "morbus"} // TODO: Add more
 }
 --Default Config
 
@@ -35,7 +38,7 @@ function MapVote.HasExtraVotePower(ply)
 end
 
 
-MapVote.CurrentMaps = {}
+MapVote.CurrentOptions = {}
 MapVote.Votes = {}
 
 MapVote.Allow = false
