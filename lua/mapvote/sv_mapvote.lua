@@ -55,22 +55,22 @@ function CoolDownDoStuff()
 	file.Write("mapvote/recentmaps.txt", util.TableToJSON(recentmaps))
 end
 
-local function MapVoteStart(gamemode, current, length, limit, prefix)
+local function MapVoteStart(gamemode, length, current, limit, prefix)
 	current = current or MapVote.Config.AllowCurrentMap or false
 	length = length or MapVote.Config.TimeLimit or 28
 	limit = limit or MapVote.Config.MapLimit or 24
 	cooldown = MapVote.Config.EnableCooldown or MapVote.Config.EnableCooldown == nil and true
-	prefix = MapVote.Config.VoteGamemode and false or (prefix or MapVote.Config.MapPrefixes) // Auto prefixes if enabled gamemode voting
+	prefix = prefix or MapVote.Config.MapPrefixes
 	-- local autoGamemode = autoGamemode or MapVote.Config.AutoGamemode or MapVote.Config.AutoGamemode == nil and true
 
 	local is_expression = false
 
-	if not prefix then
+	if not prefix or MapVote.Config.VoteGamemode then // Auto prefixes if enabled gamemode voting
 		local info = file.Read("gamemodes/"..gamemode.."/"..gamemode..".txt", "GAME")
 
 		if (info) then
 			local info = util.KeyValuesToTable(info)
-			prefix = info.maps
+			prefix = string.Split(info.maps, "|")
 		else
 			error("MapVote Prefix can not be loaded from gamemode")
 		end
@@ -94,13 +94,16 @@ local function MapVoteStart(gamemode, current, length, limit, prefix)
 		if (cooldown and table.HasValue(recentmaps, map)) then continue end
 
 		if is_expression then
-			if (string.find(map, prefix)) then -- This might work (from gamemode.txt)
-				vote_maps[#vote_maps + 1] = map:sub(1, -5)
-				amt = amt + 1
+			for k, v in pairs(prefix) do
+				if (string.match(map, v)) then -- This might work (from gamemode.txt)
+					vote_maps[#vote_maps + 1] = map:sub(1, -5)
+					amt = amt + 1
+					break
+				end
 			end
 		else
 			for k, v in pairs(prefix) do
-				if string.find(map, "^"..v) then
+				if string.match(map, "^"..v) then
 					vote_maps[#vote_maps + 1] = map:sub(1, -5)
 					amt = amt + 1
 					break

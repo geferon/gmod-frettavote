@@ -13,7 +13,16 @@ MapVoteConfigDefault = {
     -- AutoGamemode = false,
     VoteGamemode = true,
     GamemodesWhitelist = true,
-    GamemodesToVote = {"terrortown", "morbus"} // TODO: Add more
+    GamemodesToVote = {
+        "terrortown",
+        "morbus",
+        "extremefootballthrowdown",
+        "thestalker",
+        "ultimatechimerahunt",
+        "infectedwars",
+        "deathrun",
+        "zombiesurvival"
+    }
 }
 --Default Config
 

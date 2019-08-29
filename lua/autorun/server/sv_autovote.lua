@@ -1,4 +1,14 @@
 hook.Add( "Initialize", "AutoTTTMapVote", function()
+	// TODO: Add support for Prophunt and Flood, which don't have an map end or whatever
+
+	local gmInfo = {}
+	local info = file.Read("gamemodes/"..GAMEMODE_NAME.."/"..GAMEMODE_NAME..".txt", "GAME")
+	if (info) then
+		gmInfo = util.KeyValuesToTable(info)
+	else
+		print("Gamemode info can't be loaded")
+	end
+
 	if GAMEMODE_NAME == "terrortown" then
 		-- function CheckForMapSwitch()
 		-- 	-- Check for mapswitch
@@ -59,6 +69,31 @@ hook.Add( "Initialize", "AutoTTTMapVote", function()
 			end
 			function SMV.EndMapVote()
 			end
+		end
+	end
+
+	if GAMEMODE_NAME == "extremefootballthrowdown" or GAMEMODE_NAME == "garryware13" or GAMEMODE_NAME == "dogfightarcade" or (gmInfo.base and (gmInfo.base == "fretta13" or gmInfo.base == "fretta")) then // Fretta override
+		function GAMEMODE:StartGamemodeVote()
+			MapVote.Start()
+		end
+	end
+
+	if GAMEMODE_NAME == "thestalker" then
+		hook.Add("LoadNextMap", "MAPVOTE", function()
+			MapVote.Start()
+			return true
+		end)
+	end
+
+	if GAMEMODE_NAME == "ultimatechimerahunt" then
+		function StartMapVote()
+			MapVote.Start()
+		end
+	end
+
+	if GAMEMODE_NAME == "infectedwars" then
+		function GAMEMODE:LoadNextMap(map)
+			MapVote.Start()
 		end
 	end
 
