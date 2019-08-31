@@ -79,7 +79,7 @@ hook.Add( "Initialize", "AutoMapVoteCompat", function()
 			end
 		end
 
-		if GAMEMODE_NAME == "thestalker" then
+		if GAMEMODE_NAME == "stalker" or GAMEMODE_NAME == "thestalker" then
 			hook.Add("LoadNextMap", "MAPVOTE", function()
 				MapVote.Start()
 				return true
