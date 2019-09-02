@@ -103,6 +103,13 @@ hook.Add( "Initialize", "AutoMapVoteCompat", function()
 				MapVote.Start()
 			end
 		end
+
+		if GAMEMODE_NAME == "thehidden" then
+			hook.Remove("Think", "RTV Think")
+			concommand.Remove("hdn_start_rtv") // This is a debug variable that doesn't have any checks? Better stop it before anything wrong happens
+
+			RTV = MapVote.RTV // Re-override RTV system
+		end
 	else
 		if GAMEMODE_NAME == "stronghold" then
 			function GAMEMODE:EnableVotingSystem()

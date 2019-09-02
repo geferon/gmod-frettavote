@@ -1,4 +1,4 @@
-RTV = RTV or {}
+local RTV = RTV or {}
 
 RTV.ChatCommands = {
 	
@@ -25,6 +25,14 @@ function RTV.RemoveVote()
 end
 
 function RTV.Start()
+	local gmInfo = {}
+	local info = file.Read("gamemodes/"..GAMEMODE_NAME.."/"..GAMEMODE_NAME..".txt", "GAME")
+	if (info) then
+		gmInfo = util.KeyValuesToTable(info)
+	else
+		print("Gamemode info can't be loaded")
+	end
+
 	if GAMEMODE_NAME == "terrortown" then
 		net.Start("RTV_Delay")
 		net.Broadcast()
@@ -54,6 +62,19 @@ function RTV.Start()
 			GAMEMODE.STOP = true
 			MapVote.Start()
 		end)
+	elseif gmInfo and gmInfo.base and (gmInfo.base == "fretta13" or gmInfo.base == "fretta") then
+		net.Start("RTV_Delay")
+		net.Broadcast()
+
+		// Fucking fretta not having round end hooks
+		GAMEMODE.OnRoundEndOld = GAMEMODE.OnRoundEndOld or GAMEMODE.OnRoundEnd
+
+		function GAMEMODE:OnRoundEnd(res)
+			self:OnRoundEndOld(res)
+			MapVote.Start()
+
+			self.RoundLimit = GetGlobalInt( "RoundNumber" ) - 1 // Force stop
+		end
 	else
 		PrintMessage( HUD_PRINTTALK, "The vote has been rocked, map vote imminent")
 		timer.Simple(4, function()
@@ -143,3 +164,7 @@ hook.Add( "PlayerSay", "RTV Chat Commands", function( ply, text )
 	end
 
 end )
+
+// This way other gamemodes wont conflict
+MapVote.RTV = RTV
+RTV = RTV

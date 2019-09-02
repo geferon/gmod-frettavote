@@ -46,7 +46,7 @@ function CoolDownDoStuff()
 		table.remove(recentmaps)
 	end
 
-	local curmap = game.GetMap():lower()..".bsp"
+	local curmap = game.GetMap():lower()
 
 	if not table.HasValue(recentmaps, curmap) then
 		table.insert(recentmaps, 1, curmap)
@@ -65,7 +65,17 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 
 	local is_expression = false
 
-	if not prefix or MapVote.Config.VoteGamemode then // Auto prefixes if enabled gamemode voting
+	-- file.Read("mapvote/recentmaps.txt", "DATA")
+
+	local shouldFindMaps = true
+	local maps = {}
+
+	local customMaplist = file.Read("mapvote/maplist_" .. gamemode .. ".txt", "DATA")
+
+	if customMaplist then
+		shouldFindMaps = false
+		maps = string.Split(customMaplist, "\n")
+	elseif not prefix or MapVote.Config.VoteGamemode then // Auto prefixes if enabled gamemode voting
 		local info = file.Read("gamemodes/"..gamemode.."/"..gamemode..".txt", "GAME")
 
 		if (info) then
@@ -88,46 +98,59 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 			prefix = {prefix}
 		end
 	end
-	
-	local maps = file.Find("maps/*.bsp", "GAME")
-	
-	local vote_maps = {}
-	local vote_maps_recent = {}
-	
-	local amt = 0
 
-	for k, map in RandomPairs(maps) do
-		local mapstr = map:sub(1, -5):lower()
-		if (not current and game.GetMap():lower()..".bsp" == map) then continue end
-		local recent = cooldown and table.HasValue(recentmaps, map)
+	if (shouldFindMaps) then
+		local amt = 0
+		for k, map in pairs(file.Find("maps/*.bsp", "GAME")) do
+			local mapstr = map:sub(1, -5):lower()
 
-		local mapName = mapstr
+			local valid = false
 
-		if is_expression then
-			for k, v in pairs(prefix) do
-				if (string.match(map, v)) then -- This might work (from gamemode.txt)
-					if not recent then vote_maps[#vote_maps + 1] = mapstr end
-					vote_maps_recent[#vote_maps_recent + 1] = mapstr
-					amt = amt + 1
-					break
+			if is_expression then
+				for k, v in pairs(prefix) do
+					if (string.match(map, v)) then -- This might work (from gamemode.txt)
+						valid = true
+						amt = amt + 1
+						break
+					end
+				end
+			else
+				for k, v in pairs(prefix) do
+					if string.match(map, "^"..v) then
+						valid = true
+						amt = amt + 1
+						break
+					end
 				end
 			end
-		else
-			for k, v in pairs(prefix) do
-				if string.match(map, "^"..v) then
-					if not recent then vote_maps[#vote_maps + 1] = mapstr end
-					vote_maps_recent[#vote_maps_recent + 1] = mapstr
-					amt = amt + 1
-					break
-				end
+
+			if (valid) then
+				table.insert(maps, mapstr)
 			end
 		end
+	end
+
+	local vote_maps = {}
+	local vote_maps_recent = {}
+
+	local amt = 0
+
+	for k, mapstr in RandomPairs(maps) do
+		if (not current and game.GetMap():lower() == mapstr) then continue end
+		local recent = cooldown and table.HasValue(recentmaps, mapstr)
+
+		if not recent then vote_maps[#vote_maps + 1] = mapstr end
+		vote_maps_recent[#vote_maps_recent + 1] = mapstr
+
+		amt = amt + 1
 		
 		if (limit and amt >= limit) then break end
 	end
 
-
 	if #vote_maps == 0 then vote_maps = vote_maps_recent end
+
+	PrintTable(vote_maps)
+
 
 	net.Start("RAM_MapVoteStart")
 		net.WriteUInt(#vote_maps, 32)
