@@ -85,18 +85,22 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 	local maps = file.Find("maps/*.bsp", "GAME")
 	
 	local vote_maps = {}
+	local vote_maps_recent = {}
 	
 	local amt = 0
 
 	for k, map in RandomPairs(maps) do
 		local mapstr = map:sub(1, -5):lower()
 		if (not current and game.GetMap():lower()..".bsp" == map) then continue end
-		if (cooldown and table.HasValue(recentmaps, map)) then continue end
+		local recent = cooldown and table.HasValue(recentmaps, map)
+
+		local mapName = mapstr
 
 		if is_expression then
 			for k, v in pairs(prefix) do
 				if (string.match(map, v)) then -- This might work (from gamemode.txt)
-					vote_maps[#vote_maps + 1] = map:sub(1, -5)
+					if not recent then vote_maps[#vote_maps + 1] = mapstr end
+					vote_maps_recent[#vote_maps_recent + 1] = mapstr
 					amt = amt + 1
 					break
 				end
@@ -104,7 +108,8 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 		else
 			for k, v in pairs(prefix) do
 				if string.match(map, "^"..v) then
-					vote_maps[#vote_maps + 1] = map:sub(1, -5)
+					if not recent then vote_maps[#vote_maps + 1] = mapstr end
+					vote_maps_recent[#vote_maps_recent + 1] = mapstr
 					amt = amt + 1
 					break
 				end
@@ -113,7 +118,10 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 		
 		if (limit and amt >= limit) then break end
 	end
-	
+
+
+	if #vote_maps == 0 then vote_maps = vote_maps_recent end
+
 	net.Start("RAM_MapVoteStart")
 		net.WriteUInt(#vote_maps, 32)
 		
