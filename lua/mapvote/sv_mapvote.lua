@@ -70,7 +70,14 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 
 		if (info) then
 			local info = util.KeyValuesToTable(info)
-			prefix = string.Split(info.maps, "|")
+			if (info.fretta_maps) then
+				prefix = info.fretta_maps
+				for k, v in pairs(prefix) do
+					prefix[k] = "^" .. v
+				end
+			else
+				prefix = string.Split(info.maps, "|")
+			end
 		else
 			error("MapVote Prefix can not be loaded from gamemode")
 		end
