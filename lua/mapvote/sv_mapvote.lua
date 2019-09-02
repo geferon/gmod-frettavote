@@ -149,8 +149,6 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 
 	if #vote_maps == 0 then vote_maps = vote_maps_recent end
 
-	PrintTable(vote_maps)
-
 
 	net.Start("RAM_MapVoteStart")
 		net.WriteUInt(#vote_maps, 32)
