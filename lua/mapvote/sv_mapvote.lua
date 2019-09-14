@@ -130,6 +130,13 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 		end
 	end
 
+	// Re-parse maps
+	for k, v in pairs(maps) do
+		maps[k] = string.Trim(v)
+	end
+
+	// Get random maps from maps list
+
 	local vote_maps = {}
 	local vote_maps_recent = {}
 

@@ -73,7 +73,8 @@ hook.Add( "Initialize", "AutoMapVoteCompat", function()
 			end
 		end
 
-		if GAMEMODE_NAME == "extremefootballthrowdown" or GAMEMODE_NAME == "garryware13" or GAMEMODE_NAME == "dogfightarcade" or (gmInfo.base and (gmInfo.base == "fretta13" or gmInfo.base == "fretta")) then // Fretta override
+		if GAMEMODE_NAME == "extremefootballthrowdown" or GAMEMODE_NAME == "garryware13" or GAMEMODE_NAME == "dogfightarcade" or (gmInfo.base and (gmInfo.base == "fretta13" or gmInfo.base == "fretta"))
+		or fretta_voting or GAMEMODE_NAME == "prop_hunt" then // Fretta override
 			function GAMEMODE:StartGamemodeVote()
 				MapVote.Start()
 			end
