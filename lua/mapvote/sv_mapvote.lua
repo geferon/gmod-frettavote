@@ -39,7 +39,7 @@ else
 	MapVote.Config = {}
 end
 
-function CoolDownDoStuff()
+local function CoolDownDoStuff()
 	cooldownnum = MapVote.Config.MapsBeforeRevote or 3
 
 	if table.getn(recentmaps) == cooldownnum then 
@@ -53,6 +53,22 @@ function CoolDownDoStuff()
 	end
 
 	file.Write("mapvote/recentmaps.txt", util.TableToJSON(recentmaps))
+end
+
+local function StartChangeLevel(map, gamemode)
+	timer.Simple(4, function()
+		if (hook.Run("MapVoteChange", map) ~= false) then
+			if (callback) then
+				callback(map)
+			else
+				-- if map requires another gamemode then switch to it
+				if (gamemode and gamemode ~= engine.ActiveGamemode()) then
+					RunConsoleCommand("gamemode", gamemode)
+				end
+				RunConsoleCommand("changelevel", map)
+			end
+		end
+	end)
 end
 
 local function MapVoteStart(gamemode, length, current, limit, prefix)
@@ -156,6 +172,11 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 
 	if #vote_maps == 0 then vote_maps = vote_maps_recent end
 
+	// Dont even vote if there's only one map
+	if #vote_maps == 1 then
+		StartChangeLevel(vote_maps[1], gamemode)
+		return
+	end
 
 	net.Start("RAM_MapVoteStart")
 		net.WriteUInt(#vote_maps, 32)
@@ -221,19 +242,7 @@ local function MapVoteStart(gamemode, length, current, limit, prefix)
 		-- 	end
 		-- end
 		
-		timer.Simple(4, function()
-			if (hook.Run("MapVoteChange", map) ~= false) then
-				if (callback) then
-					callback(map)
-				else
-					-- if map requires another gamemode then switch to it
-					if (gamemode and gamemode ~= engine.ActiveGamemode()) then
-						RunConsoleCommand("gamemode", gamemode)
-					end
-					RunConsoleCommand("changelevel", map)
-				end
-			end
-		end)
+		StartChangeLevel(map, gamemode)
 	end)
 end
 
@@ -250,9 +259,25 @@ function MapVote.Start(length, current, limit, prefix, callback)
 	else
 		local gamemodes_vote = {}
 
+		local candidate_gamemodes = {}
+
+		for k, v in pairs(voteGamemodes) do
+			if (isstring(v)) then
+				table.insert(candidate_gamemodes, v)
+			else
+				if v.min and player.GetCount() < v.min then
+					continue
+				end
+				if v.max and player.GetCount() > v.max then
+					continue
+				end
+				table.insert(candidate_gamemodes, v.gamemode)
+			end
+		end
+
 		for k, v in pairs(engine.GetGamemodes()) do
 			if (whitelistGamemodes) then
-				if (table.HasValue(voteGamemodes, v.name)) then
+				if (table.HasValue(candidate_gamemodes, v.name)) then
 					table.insert(gamemodes_vote, v.name)
 				end
 			else
