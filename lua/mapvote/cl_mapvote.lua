@@ -47,6 +47,30 @@ net.Receive("RAM_MapVoteStart", function()
 	MapVote.Panel:SetMaps(MapVote.CurrentOptions)
 end)
 
+net.Receive("RAM_GMVoteStart", function()
+	MapVote.CurrentOptions = {}
+	MapVote.Allow = true
+	MapVote.Votes = {}
+	
+	local amt = net.ReadUInt(32)
+	
+	for i = 1, amt do
+		local gm = net.ReadString()
+		local prettyName = net.ReadString()
+		
+		MapVote.CurrentOptions[#MapVote.CurrentOptions + 1] = {gm, prettyName}
+	end
+	
+	MapVote.EndTime = CurTime() + net.ReadUInt(32)
+	
+	if (IsValid(MapVote.Panel)) then
+		MapVote.Panel:Remove()
+	end
+	
+	MapVote.Panel = vgui.Create("RAM_VoteScreen")
+	MapVote.Panel:SetGamemodes(MapVote.CurrentOptions)
+end)
+
 net.Receive("RAM_MapVoteUpdate", function()
 	local update_type = net.ReadUInt(3)
 	
@@ -268,6 +292,51 @@ function PANEL:SetMaps(maps)
 				local col = Color(255, 255, 255, 10)
 				
 				if(button.bgColor) then
+					col = button.bgColor
+				end
+				
+				draw.RoundedBox(4, 0, 0, w, h, col)
+				Paint(s, w, h)
+			end
+		end
+		
+		button:SetTextColor(color_white)
+		button:SetContentAlignment(4)
+		button:SetTextInset(8, 0)
+		button:SetFont("RAM_VoteFont")
+		
+		local extra = math.Clamp(300, 0, ScrW() - 640)
+		
+		button:SetDrawBackground(false)
+		button:SetTall(24)
+		button:SetWide(285 + (extra / 2))
+		button.NumVotes = 0
+		
+		self.mapList:AddItem(button)
+	end
+end
+
+function PANEL:SetGamemodes(gamemodes)
+	self.mapList:Clear()
+	
+	for k, v in RandomPairs(gamemodes) do
+		local button = vgui.Create("DButton", self.mapList)
+		button.ID = k
+		button:SetText(v[2])
+		
+		button.DoClick = function()
+			net.Start("RAM_MapVoteUpdate")
+				net.WriteUInt(MapVote.UPDATE_VOTE, 3)
+				net.WriteUInt(button.ID, 32)
+			net.SendToServer()
+		end
+		
+		do
+			local Paint = button.Paint
+			button.Paint = function(s, w, h)
+				local col = Color(255, 255, 255, 10)
+				
+				if (button.bgColor) then
 					col = button.bgColor
 				end
 				

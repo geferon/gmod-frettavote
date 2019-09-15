@@ -1,4 +1,5 @@
 util.AddNetworkString("RAM_MapVoteStart")
+util.AddNetworkString("RAM_GMVoteStart")
 util.AddNetworkString("RAM_MapVoteUpdate")
 util.AddNetworkString("RAM_MapVoteCancel")
 util.AddNetworkString("RTV_Delay")
@@ -257,8 +258,6 @@ function MapVote.Start(length, current, limit, prefix, callback)
 	if (not voteGamemode) then
 		MapVoteStart(gamemode, length, current, limit, prefix, callback)
 	else
-		local gamemodes_vote = {}
-
 		local candidate_gamemodes = {}
 
 		for k, v in pairs(voteGamemodes) do
@@ -275,7 +274,15 @@ function MapVote.Start(length, current, limit, prefix, callback)
 			end
 		end
 
+		local gamemodes_vote = {}
+		local gamemodes_info = {}
+
 		for k, v in pairs(engine.GetGamemodes()) do
+			local info = file.Read("gamemodes/"..v.name.."/"..v.name..".txt", "GAME")
+			if (info) then
+				gamemodes_info[v.name] = util.KeyValuesToTable(info)
+			end
+
 			if (whitelistGamemodes) then
 				if (table.HasValue(candidate_gamemodes, v.name)) then
 					table.insert(gamemodes_vote, v.name)
@@ -287,11 +294,12 @@ function MapVote.Start(length, current, limit, prefix, callback)
 			end
 		end
 
-		net.Start("RAM_MapVoteStart")
+		net.Start("RAM_GMVoteStart")
 			net.WriteUInt(#gamemodes_vote, 32)
 			
 			for i = 1, #gamemodes_vote do
 				net.WriteString(gamemodes_vote[i])
+				net.WriteString(gamemodes_info[gamemodes_vote[i]].title or gamemodes_vote[i])
 			end
 			
 			net.WriteUInt(length, 32)
