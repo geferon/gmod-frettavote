@@ -112,6 +112,7 @@ local PANEL = {}
 
 function PANEL:Init()
 	self:ParentToHUD()
+	self:SetZPos(900)
 	
 	self.Canvas = vgui.Create("Panel", self)
 	self.Canvas:MakePopup()
