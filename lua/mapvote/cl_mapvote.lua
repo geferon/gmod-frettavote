@@ -102,6 +102,12 @@ net.Receive("RTV_Delay", function()
 	chat.AddText(Color( 102,255,51 ), "[RTV]", Color( 255,255,255 ), " The vote has been rocked, map vote will begin on round end")
 end)
 
+hook.Add("ScoreboardShow", "MapVoteScoreboardHide", function()
+	if IsValid(MapVote.Panel) then
+		return false
+	end
+end)
+
 local PANEL = {}
 
 function PANEL:Init()
@@ -132,7 +138,6 @@ function PANEL:Init()
 	end
 
 	self.closeButton.DoClick = function()
-		print("HI")
 		self:SetVisible(false)
 	end
 
@@ -153,6 +158,8 @@ function PANEL:Init()
 	end
 
 	self.Voters = {}
+
+	hook.Run("ScoreboardHide")
 end
 
 function PANEL:PerformLayout()
